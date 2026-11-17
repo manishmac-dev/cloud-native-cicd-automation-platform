@@ -1,0 +1,32 @@
+pipeline {
+    agent { label 'linux-docker' }
+
+    stages {
+        stage('1. Verify Environment & Config') {
+            steps {
+                sh 'docker --version && docker compose config --quiet'
+            }
+        }
+
+        stage('2. Build & Deploy 5 Containers') {
+            steps {
+                sh 'docker compose up --build -d'
+            }
+        }
+
+        stage('3. End-to-End API Smoke Test') {
+            steps {
+                sh 'sleep 5 && curl -sf http://localhost:8000/api/v1/users && curl -sf http://localhost:8000/api/v1/orders && curl -sf http://localhost:8000/api/v1/payments'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'PRODUCTION-STYLE LINUX PIPELINE SUCCEEDED!'
+        }
+        failure {
+            echo 'PIPELINE FAILED! Check stage logs.'
+        }
+    }
+}
