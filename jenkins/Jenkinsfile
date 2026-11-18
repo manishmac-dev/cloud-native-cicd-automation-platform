@@ -45,6 +45,18 @@ pipeline {
                 sh 'sleep 5 && curl -sf http://localhost:8000/api/v1/users && curl -sf http://localhost:8000/api/v1/orders && curl -sf http://localhost:8000/api/v1/payments'
             }
         }
+        stage('6. Deploy to Kubernetes Cluster') {
+            steps {
+                sh '''
+                    echo "Applying Kubernetes manifests..."
+                    kubectl apply -f k8s/
+                    
+                    echo "Verifying deployed resources..."
+                    kubectl get pods
+                    kubectl get services
+                '''
+            }
+        }
     }
 
     post {
