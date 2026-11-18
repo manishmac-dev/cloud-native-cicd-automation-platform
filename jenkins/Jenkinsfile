@@ -51,7 +51,19 @@ pipeline {
         stage('6. Deploy to Kubernetes Cluster') {
             steps {
                 sh '''
-                    echo "Applying Kubernetes manifests..."
+                    echo "Configuring proper Kubernetes context..."
+                    mkdir -p ~/.kube
+                    
+                    # Minikube ka config local user se copy karo taaki kubectl seedha cluster se baat kare
+                    if [ -f /home/manish_kumar/.kube/config ]; then
+                        cp /home/manish_kumar/.kube/config ~/.kube/config
+                        chmod 600 ~/.kube/config
+                    fi
+
+                    # Ensure karo ki context minikube par set ho
+                    kubectl config use-context minikube
+
+                    echo "Applying Kubernetes manifests professionally..."
                     kubectl apply -f k8s/
                     
                     echo "Verifying deployed resources..."
