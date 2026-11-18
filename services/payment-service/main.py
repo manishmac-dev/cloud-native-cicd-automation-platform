@@ -71,12 +71,14 @@ class PaymentResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# Static health and custom upgrade message route (Placed at top to avoid conflicts)
 @app.get("/health", tags=["Health"])
 def health_check():
     return {
         "status": "healthy",
         "service": SERVICE_NAME,
         "version": SERVICE_VERSION,
+        "message": "Payment Service is live and upgraded successfully! 💳✨",
         "database_backend": "postgresql" if "postgresql" in DATABASE_URL else "sqlite",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
@@ -103,18 +105,10 @@ def process_payment(payment: PaymentRequest, db: Session = Depends(get_db)):
 def list_payments(db: Session = Depends(get_db)):
     return db.query(PaymentModel).all()
 
+# Dynamic parameterized route placed strictly BELOW static routes
 @app.get("/api/v1/payments/{payment_id}", response_model=PaymentResponse, tags=["Payments"])
 def get_payment_status(payment_id: int, db: Session = Depends(get_db)):
     payment = db.query(PaymentModel).filter(PaymentModel.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment record not found")
     return payment
-
-
-@app.get("/health")
-def health_check():
-    return {
-        "status": "healthy",
-        "service": "payment-service",
-        "message": "Payment Service is live and upgraded successfully! 💳✨"
-    }
