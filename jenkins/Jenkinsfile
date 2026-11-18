@@ -28,9 +28,8 @@ pipeline {
         stage('4. Build & Deploy 5 Containers') {
             steps {
                 sh '''
-                    # Point Docker client to Minikube's daemon and disable BuildKit to avoid 404 errors
+                    # Disable BuildKit to avoid 404 errors
                     export DOCKER_BUILDKIT=0
-                    eval $(minikube docker-env)
 
                     # Stop and remove existing containers and networks completely
                     docker compose down --volumes --remove-orphans || true
@@ -38,7 +37,7 @@ pipeline {
                     # Force remove any lingering conflicting container names
                     docker ps -a --format '{{.Names}}' | grep -E 'postgres-db|user-service|order-service|payment-service|api-gateway' | xargs -r docker rm -f || true
                     
-                    # Build and spin up fresh containers inside Minikube Docker daemon
+                    # Build and spin up fresh containers
                     docker compose up --build -d
                 '''
             }
