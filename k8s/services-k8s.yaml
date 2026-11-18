@@ -104,7 +104,8 @@ spec:
   ports:
     - port: 8003
       targetPort: 8003
-  type: ClusterIP
+      nodePort: 30003
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
