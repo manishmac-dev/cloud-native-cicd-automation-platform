@@ -1,20 +1,37 @@
 pipeline {
-    agent { label 'linux-docker' }
+    agent any
 
     stages {
-        stage('1. Verify Environment & Config') {
+        stage('1. Prepare SSH Host Keys') {
+            steps {
+                sh '''
+                    mkdir -p ~/.ssh
+                    chmod 700 ~/.ssh
+                    ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+                    chmod 600 ~/.ssh/known_hosts
+                '''
+            }
+        }
+
+        stage('2. Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('3. Verify Environment & Config') {
             steps {
                 sh 'docker --version && docker compose config --quiet'
             }
         }
 
-        stage('2. Build & Deploy 5 Containers') {
+        stage('4. Build & Deploy 5 Containers') {
             steps {
                 sh 'docker compose up --build -d'
             }
         }
 
-        stage('3. End-to-End API Smoke Test') {
+        stage('5. End-to-End API Smoke Test') {
             steps {
                 sh 'sleep 5 && curl -sf http://localhost:8000/api/v1/users && curl -sf http://localhost:8000/api/v1/orders && curl -sf http://localhost:8000/api/v1/payments'
             }
