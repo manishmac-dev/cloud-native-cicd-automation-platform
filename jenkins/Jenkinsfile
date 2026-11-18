@@ -28,8 +28,13 @@ pipeline {
         stage('4. Build & Deploy 5 Containers') {
             steps {
                 sh '''
-                    docker rm -f postgres-db user-service order-service payment-service nginx-proxy 2>/dev/null || true
-                    docker compose down --remove-orphans
+                    # Stop and remove existing containers and networks completely
+                    docker compose down --volumes --remove-orphans || true
+                    
+                    # Force remove any lingering conflicting container names by project or general filter
+                    docker ps -a --format '{{.Names}}' | grep -E 'postgres-db|user-service|order-service|payment-service|api-gateway' | xargs -r docker rm -f || true
+                    
+                    # Build and spin up fresh containers
                     docker compose up --build -d
                 '''
             }
