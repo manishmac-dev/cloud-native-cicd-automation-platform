@@ -25,10 +25,10 @@ pipeline {
             }
         }
 
-    stage('4. Build & Deploy 5 Containers') {
+        stage('4. Build & Deploy 5 Containers') {
             steps {
                 sh '''
-                    docker rm -f postgres-db || true
+                    docker rm -f postgres-db user-service order-service payment-service nginx-proxy 2>/dev/null || true
                     docker compose down --remove-orphans
                     docker compose up --build -d
                 '''
