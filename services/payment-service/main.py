@@ -109,3 +109,12 @@ def get_payment_status(payment_id: int, db: Session = Depends(get_db)):
     if not payment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment record not found")
     return payment
+
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "payment-service",
+        "message": "Payment Service is live and upgraded successfully! 💳✨"
+    }
