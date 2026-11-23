@@ -1,0 +1,56 @@
+---
+- name: Configure Minikube and kubeconfig for Jenkins user
+  hosts: local
+  become: true
+  vars:
+    source_user: manish_kumar
+    target_user: jenkins
+    source_home: "/home/{{ source_user }}"
+    target_home: "/var/lib/{{ target_user }}"
+
+  tasks:
+    - name: Create .kube and .minikube directories for Jenkins
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: "0700"
+      loop:
+        - "{{ target_home }}/.kube"
+        - "{{ target_home }}/.minikube"
+
+    - name: Copy kubeconfig for Jenkins user
+      ansible.builtin.copy:
+        src: "{{ source_home }}/.kube/config"
+        dest: "{{ target_home }}/.kube/config"
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: "0600"
+        remote_src: true
+
+    - name: Copy Minikube certs and profile to Jenkins home
+      ansible.builtin.copy:
+        src: "{{ source_home }}/.minikube/"
+        dest: "{{ target_home }}/.minikube/"
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: "0700"
+        remote_src: true
+
+    - name: Update Minikube certificate paths in Jenkins kubeconfig
+      ansible.builtin.replace:
+        path: "{{ target_home }}/.kube/config"
+        regexp: "{{ source_home }}/.minikube"
+        replace: "{{ target_home }}/.minikube"
+
+    - name: Set recursive ownership on Jenkins .kube and .minikube
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        recurse: true
+      loop:
+        - "{{ target_home }}/.kube"
+        - "{{ target_home }}/.minikube"
